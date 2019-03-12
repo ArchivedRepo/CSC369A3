@@ -34,16 +34,19 @@ void lru_ref(pgtbl_entry_t *p) {
 
 	// if it is not head
 	if(coremap[frame].before != NULL){
-		coremap[frame].before->after = coremap[frame].after;
-	
-	//if the frame is tail 
-	if(coremap[frame].after == NULL){
-		tail = coremap[frame].before;
-	}
-
-	coremap[frame].before = NULL;
-	coremap[frame].after = head->after;
-	head = &coremap[frame];
+		// if the frame is tail
+		if(coremap[frame].after == NULL){
+			tail = coremap[frame].before;
+			tail->after = NULL;
+		}else{
+			coremap[frame].before->after = coremap[frame].after;
+			coremap[frame].after->before = coremap[frame].before;
+		}
+		
+		coremap[frame].before = NULL;
+		coremap[frame].after = head;
+		head->before = &coremap[frame];
+		head = &coremap[frame];
 	}
 	
 	return;
