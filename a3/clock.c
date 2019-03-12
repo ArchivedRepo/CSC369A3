@@ -46,4 +46,7 @@ void clock_ref(pgtbl_entry_t *p) {
  */
 void clock_init() {
 	clockhand = 0;
+	for(int i=0; i< memsize; i++){
+		coremap[i].ref = 0;
+	}
 }
