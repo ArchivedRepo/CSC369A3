@@ -29,6 +29,9 @@ int clock_evict() {
 	}
 	int value = clockhand;
 	clockhand++;
+	if(clockhand == memsize){
+		clockhand = 0;
+	}
 	return value;
 }
 
