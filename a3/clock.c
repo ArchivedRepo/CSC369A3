@@ -27,7 +27,9 @@ int clock_evict() {
 			clockhand = 0;
 		}
 	}
-	return clockhand;
+	int value = clockhand;
+	clockhand++;
+	return value;
 }
 
 /* This function is called on each access to a page to update any information
