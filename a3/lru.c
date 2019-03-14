@@ -12,17 +12,24 @@ extern int debug;
 
 extern struct frame *coremap;
 
-struct frame *head;
+struct _linked_list_t {
+	int frame;
+	struct _linked_list_t *before;
+	struct _linked_list_t *next;
+};
 
-struct frame *tail;
+typedef struct _linked_list_t linked_list_t;
+
+linked_list_t *head;
+linked_list_t *tail;
+linked_list_t *nodes;
 
 /* Page to evict is chosen using the accurate LRU algorithm.
  * Returns the page frame number (which is also the index in the coremap)
  * for the page that is to be evicted.
  */
-
 int lru_evict() {
-	return tail->pte->frame >> PAGE_SHIFT;
+	return tail->frame;
 }
 
 /* This function is called on each access to a page to update any information
@@ -31,24 +38,22 @@ int lru_evict() {
  */
 void lru_ref(pgtbl_entry_t *p) {
 	int frame = p->frame >> PAGE_SHIFT;
-
-	// if it is not head
-	if(coremap[frame].before != NULL){
-		// if the frame is tail
-		if(coremap[frame].after == NULL){
-			tail = coremap[frame].before;
-			tail->after = NULL;
-		}else{
-			coremap[frame].before->after = coremap[frame].after;
-			coremap[frame].after->before = coremap[frame].before;
+	linked_list_t *this = nodes + frame;
+	if (this->before == NULL) {
+		// this node is already head, nothing to be done
+		return;
+	} else {
+		this->before->next = this->next;
+		if (this->next != NULL) {
+		    this->next->before = this->before;
+		} else {
+			tail = this->before;
 		}
-		
-		coremap[frame].before = NULL;
-		coremap[frame].after = head;
-		head->before = &coremap[frame];
-		head = &coremap[frame];
+		this->before = NULL;
+		this->next = head;
+		head->before = this;
+		head = this;
 	}
-	
 	return;
 }
 
@@ -57,15 +62,25 @@ void lru_ref(pgtbl_entry_t *p) {
  * replacement algorithm 
  */
 void lru_init() {
-	head = &coremap[0];
-	tail = &coremap[memsize - 1];
-
-	coremap[0].before = NULL;
-	coremap[0].after = &coremap[1];
-	for(int i=1; i < memsize - 1; i++){
-		coremap[i].before = &coremap[i-1];
-		coremap[i].after = &coremap[i+1];
+	head = NULL;
+	tail = NULL;
+	nodes = malloc(sizeof(linked_list_t) * memsize);
+	for (int i = 0; i < memsize; i++) {
+		nodes[i].frame = i;
+		nodes[i].next = NULL;
+		nodes[i].before = NULL;
 	}
-	coremap[memsize - 1].before = &coremap[memsize - 2];
-	coremap[memsize - 1].after = NULL;
+	head = nodes;
+	tail = nodes;
+	for (int i = 1; i < memsize; i++) {
+		linked_list_t *this = nodes+i;
+		tail->next = this;
+		this->before = tail;
+		tail = this;
+	}
+	return;
+}
+
+void lru_destroy() {
+	free(nodes);
 }

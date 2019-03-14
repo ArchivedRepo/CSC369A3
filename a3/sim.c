@@ -19,16 +19,17 @@ char *tracefile = NULL;
  * call to select the victim page.
  */
 struct functions algs[] = {
-	{"rand", rand_init, rand_ref, rand_evict}, 
-	{"lru", lru_init, lru_ref, lru_evict},
-	{"fifo", fifo_init, fifo_ref, fifo_evict},
-	{"clock",clock_init, clock_ref, clock_evict},
+	{"rand", rand_init, rand_ref, rand_evict, rand_destroy}, 
+	{"lru", lru_init, lru_ref, lru_evict, lru_destroy},
+	{"fifo", fifo_init, fifo_ref, fifo_evict, fifo_destroy},
+	{"clock",clock_init, clock_ref, clock_evict, clock_destroy},
 };
 int num_algs = 5;
 
 void (*init_fcn)() = NULL;
 void (*ref_fcn)(pgtbl_entry_t *) = NULL;
 int (*evict_fcn)() = NULL;
+void (*destroy_fcn)() = NULL;
 
 
 /* An actual memory access based on the vaddr from the trace file.
@@ -134,6 +135,7 @@ int main(int argc, char *argv[]) {
 				init_fcn = algs[i].init;
 				ref_fcn = algs[i].ref;
 				evict_fcn = algs[i].evict;
+				destroy_fcn = algs[i].destroy;
 				break;
 			}
 		}
@@ -151,6 +153,7 @@ int main(int argc, char *argv[]) {
 
 	// Cleanup - removes temporary swapfile.
 	swap_destroy();
+	destroy_fcn();
 
 	printf("\n");
 	printf("Hit count: %d\n", hit_count);

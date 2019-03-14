@@ -65,9 +65,6 @@ struct frame {
 	char in_use;       // True if frame is allocated, False if frame is free
 	pgtbl_entry_t *pte;// Pointer back to pagetable entry (pte) for page
 	                   // stored in this frame
-	int ref; // for clock algorithm
-	struct frame *before;
-	struct frame *after;
 };
 
 /* The coremap holds information about physical memory.
@@ -101,5 +98,11 @@ extern int lru_evict();
 extern int clock_evict();
 extern int fifo_evict();
 extern int opt_evict();
+
+extern void rand_destroy();
+extern void lru_destroy();
+extern void clock_destroy();
+extern void fifo_destroy();
+extern void opt_destroy();
 
 #endif /* PAGETABLE_H */

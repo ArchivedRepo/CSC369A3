@@ -12,7 +12,7 @@ extern int debug;
 
 extern struct frame *coremap;
 
-int clockhand;
+static int clock_hand;
 
 /* Page to evict is chosen using the clock algorithm.
  * Returns the page frame number (which is also the index in the coremap)
@@ -20,19 +20,16 @@ int clockhand;
  */
 
 int clock_evict() {
-	while(coremap[clockhand].ref != 0){
-		coremap[clockhand].ref = 0;
-		clockhand++;
-		if(clockhand == memsize){
-			clockhand = 0;
+	while (1) {
+		if ((coremap[clock_hand].pte)->frame & PG_REF) {
+			coremap[clock_hand].pte->frame &= ~PG_REF;
+			clock_hand = (clock_hand + 1) % memsize;
+		} else {
+			int result = clock_hand;
+			clock_hand = (clock_hand + 1) % memsize;
+			return result;
 		}
 	}
-	int value = clockhand;
-	clockhand++;
-	if(clockhand == memsize){
-		clockhand = 0;
-	}
-	return value;
 }
 
 /* This function is called on each access to a page to update any information
@@ -40,7 +37,7 @@ int clock_evict() {
  * Input: The page table entry for the page that is being accessed.
  */
 void clock_ref(pgtbl_entry_t *p) {
-	coremap[p->frame >> PAGE_SHIFT].ref = 1;
+	p->frame |= PG_REF;
 	return;
 }
 
@@ -48,8 +45,9 @@ void clock_ref(pgtbl_entry_t *p) {
  * algorithm. 
  */
 void clock_init() {
-	clockhand = 0;
-	for(int i=0; i< memsize; i++){
-		coremap[i].ref = 0;
-	}
+	clock_hand = 0;
+}
+
+void clock_destroy() {
+	return;
 }

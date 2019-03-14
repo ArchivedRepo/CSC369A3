@@ -32,3 +32,7 @@ void rand_ref(pgtbl_entry_t *p) {
 
 void rand_init() {
 }
+
+void rand_destroy() {
+	return;
+}

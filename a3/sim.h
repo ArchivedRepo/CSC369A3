@@ -23,11 +23,13 @@ struct functions {
 	char *name;                  // String name of eviction algorithm
 	void (*init)(void);          // Initialize any data needed by alg
 	void (*ref)(pgtbl_entry_t *);    // Called on each reference
-	int (*evict)();              // Called to choose victim for eviction
+	int (*evict)();
+	void (*destroy)();              // Called to choose victim for eviction
 };
 
 extern void (*init_fcn)();
 extern void (*ref_fcn)(pgtbl_entry_t *);
 extern int (*evict_fcn)();
+extern void (*destroy_fcn)();
 
 #endif // __SIM_H 
