@@ -65,6 +65,10 @@ void lru_init() {
 	head = NULL;
 	tail = NULL;
 	nodes = malloc(sizeof(linked_list_t) * memsize);
+	if (nodes == NULL) {
+		perror("malloc");
+		exit(1);
+	}
 	for (int i = 0; i < memsize; i++) {
 		nodes[i].frame = i;
 		nodes[i].next = NULL;
